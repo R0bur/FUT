@@ -1,0 +1,3 @@
+Declare Sub stteSetFileName (ByRef fn As String)
+Declare Function stteGetValue (ByRef StateName As Const String) As String
+Declare Function stteSetValue (ByRef StateName As Const String, ByRef StateValue As Const String) As Integer

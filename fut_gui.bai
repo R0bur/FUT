@@ -1,0 +1,11 @@
+Enum MessageCategory
+	MSGINFO, MSGWARN, MSGERROR
+End Enum
+Declare Function guiExclusiveWorkStart (ByRef IniFileName As Const String) As Integer
+Declare Sub guiExclusiveWorkFinish
+Declare Sub guiDisplayMessage (ByVal category As MessageCategory, ByRef text As Const String, ByRef title As Const String)
+Declare Sub guiPrintLn (ByRef s As Const String, ByVal nl As Integer)
+Declare Function guiCreateMainWindow (ByRef AppName As Const String, ByRef Station As Const String) As Integer
+Declare Sub guiWaitForReady
+Declare Sub guiNotifyWorkBegins
+Declare Sub guiNotifyWorkDone

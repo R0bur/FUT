@@ -1,0 +1,7 @@
+Const textWhitespaces As String = !" \t", _
+	textAbcUC As String = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", _
+        textAbcLC As String = "abcdefghijklmnopqrstuvwxyz", _
+        textDigits As String = "0123456789"
+Declare Function textWalkOver (ByVal p As Integer, ByRef ss As Const String, ByRef sc As Const String) As Integer
+Declare Function textWalkTo(ByVal p As Integer, ByRef ss As Const String, ByRef sc As Const String) As Integer
+Declare Function textSubstitute (ByRef t As Const String, ByRef v As Const String, ByVal c As String = "^") As String

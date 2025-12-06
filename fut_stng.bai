@@ -1,0 +1,3 @@
+Declare Sub stngInit (ByRef s As Const String, ByRef c As String = "^")
+Declare Function stngSetValue (ByRef s As Const String, ByRef v As Const String, ByVal o As Integer) As Integer
+Declare Function stngGetValue (ByRef s As Const String) As String

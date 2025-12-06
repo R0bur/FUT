@@ -1,0 +1,13 @@
+Type workThreadData
+	Dim SourceFolder As String	' исходная папка с обновлениями
+	Dim CacheFolder As String	' локальная папка для хранения обновлений
+	Dim TempFolder As String	' временная папка для распаковки обновлений
+	Dim TargetFolder As String	' целевая папка для установки обновлений
+	Dim UnpackProgram As String	' путь к программе распаковки
+	Dim UnpackArguments As String	' аргументы командной строки для распаковки
+	Dim UpdToRemove(Any) As String	' имена файлов, которые надо удалить из локальной папки
+	Dim UpdToRetrieve(Any) As String	' имена файлов, которые надо получить из исходной папки в локальную
+	Dim UpdToInstall(Any) As String	' имена файлов, которые надо установить
+	Dim BadResult As Integer	' признак ошибки
+End Type
+Declare Sub workThread (ByVal UserData As Any Ptr)

@@ -1,0 +1,15 @@
+Declare Function fileBaseName (ByRef FullName As Const String) As String
+Declare Function fileBaseNameOnly (ByRef FullName As Const String) As String
+Declare Function fileDetermineAbsolutePath (ByRef BasePath As Const String, RelativePath As Const String) As String
+Declare Function fileTimePointMMDD (ByRef MMDD1 As Const String, ByRef MMDD2 As Const String, ByVal DM As Integer) As Integer
+Declare Function fileCompareFileNamesMMDD (ByRef Name1 As Const String, ByRef Name2 As Const String) As Integer
+Declare Sub fileIndexingArray (Arr() As String, Ind() As Integer, Cmp As Function (ByRef As Const String, ByRef As Const String) As Integer)
+Declare Function fileValidFileNameMMDD (ByRef FileName As Const String, ByVal pmd As Integer) As Integer
+Declare Sub fileFillArrayWithFileNames (ByRef PathAndMask As Const String, ArrFileNames() As String)
+Declare Function fileAccessibleRW (ByRef FileName As Const String) As Integer
+Declare Function fileRandomName (ByVal Length As Integer) As String
+Declare Function fileFolderExists (ByRef FolderName As Const String) As Integer
+Declare Function fileFolderAccessibleR (ByRef FolderName As Const String) As Integer
+Declare Function fileFolderAccessibleRW (ByRef FolderName As Const String) As Integer
+Declare Function fileCopyFolderContents (ByRef SrcFolder As Const String, ByRef DstFolder As Const String) As Integer
+Declare Function fileKillFolder (ByRef FolderName As Const String) As Integer

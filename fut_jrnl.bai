@@ -1,0 +1,6 @@
+Declare Sub jrnlOpen (ByRef FileName As Const String)
+Declare Function jrnlTitle (ByRef Title As Const String) As Integer
+Declare Function jrnlFooter (ByVal Result As Integer) As Integer
+Declare Function jrnlMsgOperation (ByRef Description As Const String, ByVal Result As Integer) As String
+Declare Function jrnlWrite (ByRef Message As Const String) As Integer
+Declare Sub jrnlClose

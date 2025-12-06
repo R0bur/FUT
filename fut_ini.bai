@@ -1,0 +1,15 @@
+Enum iniErrorCodes
+	iniEcNoError,
+	iniEcInvalidCharacter,
+	iniEcEqualSignExpected,
+	iniEcNoClosingQuotationMark
+        iniEcNoClosingBracket
+End Enum
+Declare Sub iniParseBegin (ByRef qm As Const String, ByRef cm As Const String)
+Declare Function iniParseLine (ByRef s As Const String) As Integer
+Declare Function iniGetSection As String
+Declare Function iniGetParameter As String
+Declare Function iniGetValue As String
+Declare Function iniGetErrorCode As Integer
+Declare Function iniGetErrorPosition As Integer
+Declare Sub iniParseEnd

@@ -1,0 +1,2 @@
+Declare Function langSetLanguage (ByRef v As Const String) As Integer
+Declare Function langStr (i As Integer) As Const String

@@ -1,0 +1,19 @@
+Type StringData
+	Private:
+	sbuf As String	' буфер для хранения информации
+	nbuf As Integer ' текущий размер буфера
+	pbuf As Integer ' позиция свободного пространства в буфере
+	pcur As Integer		' текущая позиция в буфере
+	cnt As Integer		' количество записей
+	chunksize As Integer	' размер выделяемого блока
+	separator As String	' разделитель записей в буфере
+	Public:
+	Declare Constructor (ByVal As Integer, ByRef As Const String)
+	Declare Operator Let (ByRef As Const StringData)
+	Declare Function Store (ByRef As Const String) As Integer
+	Declare Function Read As String
+	Declare Sub Restore
+	Declare Sub Wipe
+	Declare Function Count As Integer
+	Declare Destructor
+End Type
