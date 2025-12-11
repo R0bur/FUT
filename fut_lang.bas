@@ -32,17 +32,25 @@ S(..., ...) As Const ZString Ptr => { _
 	@!"Can't read-write access the folder:\n\n""^0""", _
 	@!"Can't read the folder:\n\n""^0""", _
 	@!"Value of MMDD is set from DEBUG setting: ^0", _
+	_
 	@!"System state file doesn't contain information about the last update file name.", _
 	@!"Last update file name ""^0"" doesn't match the mask: ""^1"".", _
 	@!"Required setting isn't specified: ^0.", _
 	@!" - Ok.", _
 	@!" - Error!", _
 	@!"Delete file: ""^0""", _
-	@!"Retrieve file: ""^0"" -> ""^1""", _
+	@!"Retrieve file: ""^0""", _
 	@!"Update from: ""^0""", _
 	@!"!!! System state update error.", _
 	@!"FINAL RESULT", _
-	@!"&Next" _
+	_	
+	@!"&Next", _
+	@!"Can't create folder: ""^0"".", _
+	@!"Update file unpacking error.", _
+	@!"Attempt to violate the target folder protection.", _
+	@!"Update files copying error.", _
+	@!"Temporary folder removing error.", _
+	@!"Invalid value is specified for the default protection mode of the target folder: ""Guard.Default"" = ""^0"". It should be ""Allow"" or ""Deny""." _
 	}, { _
 	@"Русский язык", _
 	@!"Ошибка в параметрах командной строки.\n\nИспользование: ^0 Полное_имя_INI-файла", _
@@ -54,17 +62,25 @@ S(..., ...) As Const ZString Ptr => { _
 	@!"Нет доступа для чтения и записи к папке:\n\n""^0""", _
 	@!"Невозможно прочитать папку:\n\n""^0""", _
 	@!"Значение ММДД установлено из ОТЛАДОЧНЫХ настроек: ^0", _
+	_
 	@!"Файл состояния системы не содержит сведений об имени файла последнего обновления.", _
 	@!"Имя файла последнего обновления ""^0"" не соответствует маске: ""^1"".", _
 	@!"Обязательная настройка не задана: ^0.", _
 	@!" - Ок.", _
 	@!" - Ошибка!", _
 	@!"Удаление файла: ""^0""", _
-	@!"Получение файла: ""^0"" -> ""^1""", _
+	@!"Получение файла: ""^0""", _
 	@!"Обновление из: ""^0""", _
 	@!"!!! Ошибка обновления состояния системы.", _
 	@!"ИТОГОВЫЙ РЕЗУЛЬТАТ", _
-	@!"&Далее" _
+	_
+	@!"&Далее", _
+	@!"Не удалось создать папку: ""^0"".", _
+	@!"Ошибка распаковки файла с обновлением.", _
+	@!"Попытка нарушить защиту целевой папки.", _
+	@!"Ошибка копирования файлов обновления.", _
+	@!"Ошибка удаления временной папки.", _
+	@!"Для режима защиты целевой папки по умолчанию указано неправильное значение: ""Guard.Default"" = ""^0"". Должно быть ""Allow"" или ""Deny""." _
         } _
 }
 Rem =========================================================

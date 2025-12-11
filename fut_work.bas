@@ -27,6 +27,7 @@ Rem ===================================================
 #include once "fut_text.bai"
 #include once "fut_lang.bai"
 Dim Shared Description As String
+Dim Shared ErrorDetails As String
 Rem ============================================
 Rem Печать сообщения перед выполнением действия.
 Rem Вызов: s - текст сообщения.
@@ -66,11 +67,14 @@ Private Function InstallUpdate (ByRef FullUpdFileName As Const String, ByRef Tem
 	ByRef UnpackArguments As Const String) As Integer
 	Dim TempFolderName As String, CurDirSave As String, _
 		p As Integer, res As Integer, secres As Integer
-	Rem Создание временного каталога.
+	Rem Создание временной папки.
 	TempFolderName = TempFolder + "\" + fileBaseNameOnly (FullUpdFileName) + ".tmp"
 	res = 0 = MkDir (TempFolderName)
-	If -1 = res Then
-		Rem Распаковка обновления во временный каталог.
+	If 0 = res Then
+		Rem Произошла ошибка создания временной папки.
+		ErrorDetails = textSubstitute (langStr(21), TempFolderName)
+	Else
+		Rem Распаковка обновления во временную папку.
 		CurDirSave = CurDir
 		ChDir TempFolderName
 		Rem - workInformBefore UnpackProgram + " " + UnpackArguments
@@ -79,20 +83,35 @@ Private Function InstallUpdate (ByRef FullUpdFileName As Const String, ByRef Tem
 			Exec (UnpackProgram, FullUpdFileName))
 		Rem - workInformAfter res
 		ChDir CurDirSave
+		If 0 = res Then
+			Rem Произошла ошибка распаковки.
+			ErrorDetails = langStr (22)
+		End If
 		If -1 = res Then
-			Rem Копирование файлов из временного каталога в целевой.
+			Rem Проверка соответствия условиям защиты целевой папки.
+			res = fileTargetFolderGuard (TempFolderName)
+			If 0 = res Then
+				Rem Обнаружено нарушение защиты целевой папки
+				ErrorDetails = langStr (23)
+			End If
+		End If
+		If -1 = res Then
+			Rem Копирование файлов из временной папки в целевую.
 			Rem - workInformBefore "Copy contents: " + TempFolderName + " -> " + TargetFolder
 			res = fileCopyFolderContents (TempFolderName, TargetFolder)
 			Rem -workInformAfter res
-		Else
-			Rem Произошла ошибка распаковки.
+			If 0 = res Then
+				Rem Произошла ошибка копирования файлов.
+				ErrorDetails = langStr (24)
+			End If
 		End If
-		Rem Удаление временного каталога со всем его содержимым.
+		Rem Удаление временной папки со всем её содержимым.
 		Rem - workInformBefore "Delete folder: " + TempFolderName
 		secres = fileKillFolder (TempFolderName)
 		Rem - workInformAfter secres
-		Rem Фиксация ошибки удаления временного каталога.
+		Rem Фиксация ошибки удаления временной папки.
 		if -1 <> secres  Then
+			ErrorDetails = langStr (25)
 			res = 0
 		End If
 	End If
@@ -173,6 +192,10 @@ Public Sub workThread (ByVal UserData As Any Ptr)
 				secres = 0 = Kill (FFN1)
 				workInformAfter secres
 			Else
+				Rem Детализация причины ошибки обновления, если таковая имеется.
+				If "" <> ErrorDetails Then
+					workInformJustNow "!!! " + ErrorDetails
+				End If
 				Rem В случае неудачи установки обновления файл не удаляется,
 				Rem чтобы можно было расследовать причину: не в нём ли дело?
 			End If

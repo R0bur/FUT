@@ -21,6 +21,7 @@ Rem =================================
 #include once "dir.bi"
 #include once "file.bi"
 #include once "fut_data.bai"
+#include once "fut_grd.bai"
 Common Shared PMMDD As Integer			' позиция фрагмента ММДД в имени файла
 Common Shared TodayMMDD As String*4		' "сегодняшний" день в виде ММДД
 Rem ============================================================
@@ -84,7 +85,7 @@ Rem Если в относительной части обнаруживается
 Rem абсолютный путь (начинается с "\" иди "X:"),
 Rem то базовая часть пути не используется.
 Rem ===============================================
-Public Function fileDetermineAbsolutePath (ByRef BasePath As Const String, RelativePath As Const String) As String
+Public Function fileDetermineAbsolutePath (ByRef BasePath As Const String, ByRef RelativePath As Const String) As String
 	Const SEP As String = "\", _
 		UNCPREFIX As String = "\\"
 	Dim AbsolutePath As String, nb As Integer, pb1 As Integer, pb2 As Integer, _
@@ -391,6 +392,48 @@ Public Function fileFolderAccessibleRW (ByRef FolderName As Const String) As Int
                 End If
         End If
         fileFolderAccessibleRW = res
+End Function
+Rem ===================================================================
+Rem Проверка выполнения требований защиты целевой папки перед
+Rem копированием содержимого одной папки в другую папку.
+Rem Вызов: SrcFolder - исходная папка без завершающей наклонной черты,
+Rem        SubFolder - рассматриваемая на данной итерации вложенная
+Rem                    папка. При первом вызове - пустая строка, при
+Rem                    остальных вызовах завершаеотся наклонной чертой.
+Rem Возврат: -1 - проверка прошла успешно,
+Rem           0 - обнаружено нарушение защиты.
+Rem ===================================================================
+Public Function fileTargetFolderGuard (ByRef SrcFolder As Const String, ByRef SubFolder As Const String = "") As Integer
+	Dim res As Integer, fName As String, CurFolder As String
+	Dim folders As StringData = StringData (128, Chr (7))
+	res = -1
+	Rem Формирование полного пути к обрабатываемой папке.
+	CurFolder = SrcFolder + "\" + SubFolder
+	Rem Проверка файлов текущей папки.
+	fName = Dir (CurFolder + "*", fbNormal Or fbSystem Or fbHidden Or fbReadOnly)
+	While -1 = res AndAlso "" <> fName
+		res = grdCheck (SubFolder + fName)
+		fName = Dir
+	Wend
+	Rem Подготовка списка вложенных папок.
+	fName = Dir (CurFolder + "*", fbDirectory Or fbHidden Or fbReadOnly)
+	While -1 = res AndAlso "" <> fName
+		If "." <> fName AndAlso ".." <> fName Then
+			res = folders.Store (fName)
+		End If
+		fName = Dir
+	Wend
+	Rem Проверка вложенных папок по списку.
+	fName = folders.Read
+	While -1 = res AndAlso "" <> fName
+		CurFolder = SubFolder + fName
+		res = grdCheck (CurFolder)
+		If -1 = res Then
+			res = fileTargetFolderGuard (SrcFolder, CurFolder + "\")
+		End If
+		fName = folders.Read
+	Wend
+	fileTargetFolderGuard = res
 End Function
 Rem =========================================================
 Rem Копирование содержимого одной папки в другую папку.

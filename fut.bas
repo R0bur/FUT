@@ -30,6 +30,7 @@ Rem ===================================================
 #include once "fut_stte.bai"
 #include once "fut_work.bai"
 #include once "fut_jrnl.bai"
+#include once "fut_grd.bai"
 Rem ===================================================
 Rem Копирование строк из структуры StringData в массив.
 Rem Вызов: sd - структура данных StringData.
@@ -113,7 +114,7 @@ If 0 = BadResult Then
         	Rem Подготовка к работе с настройками.
                 stngInit ".Language^.Station^.UpdFileMask^Commands.Unpack^Commands.RunApp^" _
                 	"Files.State^Files.Journal^Folders.Target^Folders.Source^Folders.Cache^" _
-                	"Folders.Temp^Debug.TodayMMDD", "^"
+                	"Folders.Temp^Guard.Default^Debug.TodayMMDD", "^"
         	Rem Построчная обработка файла.
 		iniParseBegin """", ";"
 		While Not EOF (IniFile)
@@ -125,17 +126,25 @@ If 0 = BadResult Then
                         	Rem Получен очередной параметр.
                                 Parameter = iniGetSection + "." + iniGetParameter
                                 Value = iniGetValue
-                                Rem Установка значения параметра с запретом изменения.
-                                If stngSetValue (Parameter, Value, 0) Then
-                                	Rem Немедленная обработка параметра,
-                                        Rem устанавливающего язык интерфейса.
-                                       	If ".Language" = Parameter Then
-						langSetLanguage (Value)
-                                        End If
-				Else
-                                	Rem Ошибка установки параметра.
-                                        guiDisplayMessage MSGWARN, textSubstitute (langStr (3), Str(i) + "^" + Parameter + "^" + Value), AppName
-                                End If
+                                If "Guard.Allow" = Parameter Then
+	                                Rem Обработка разрешительного правила из секции Guard.
+	                                grdAddRule (-1, Value)
+                                ElseIf "Guard.Deny" = Parameter Then
+					Rem Обработка запретительного правила из секции Guard.
+					grdAddRule (0, Value)
+                                Else
+					Rem Установка значения параметра с запретом изменения.
+					If stngSetValue (Parameter, Value, 0) Then
+						Rem Немедленная обработка параметра,
+						Rem устанавливающего язык интерфейса.
+						If ".Language" = Parameter Then
+							langSetLanguage (Value)
+						End If
+					Else
+						Rem Ошибка установки параметра.
+						guiDisplayMessage MSGWARN, textSubstitute (langStr (3), Str(i) + "^" + Parameter + "^" + Value), AppName
+					End If
+				End If
                         ElseIf 0 = res Then
                         	Rem При обработке строки обнаружена ошибка.
 		                guiDisplayMessage MSGERROR, textSubstitute (langStr(4), Str(i) + "^" + s), AppName
@@ -233,6 +242,26 @@ If 0 = BadResult Then
         If 0 = fileFolderAccessibleRW (WTD.TargetFolder) Then
         	guiDisplayMessage MSGERROR, textSubstitute (langStr(7), WTD.TargetFolder), AppName
                 BadResult = -1
+        Else
+        	Rem Установка режима доступа к целевой папке по умолчанию.
+        	Dim DefaultAccess As String
+        	DefaultAccess = stngGetValue ("Guard.Default")
+        	If "Allow" = DefaultAccess Then 
+        		grdSetDefaultDecision (-1)
+        	ElseIf "Deny" = DefaultAccess Then
+        		grdSetDefaultDecision (0)
+        	Else
+        		Rem Неправильное значение режима доступа по умолчанию.
+        		guiDisplayMessage MSGERROR, textSubstitute (langStr (26), DefaultAccess), AppName
+        		BadResult = -1
+        	End If
+        	Rem Подготовка защиты целевой папки.
+        	If 0 = BadResult Then
+        		If 0 = grdPrepare Then
+        			guiDisplayMessage MSGERROR, "Can't prepare the guard of the target folder.", AppName
+        			BadResult = -1
+        		End If
+        	End If
         End If
         Rem Временная папка.
         WTD.TempFolder = fileDetermineAbsolutePath (SavedCurDir, Trim (stngGetValue ("Folders.Temp")))

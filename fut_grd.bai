@@ -1,0 +1,5 @@
+Declare Sub grdSetCaseSensitivity (ByVal As Integer)
+Declare Sub grdSetDefaultDecision (ByVal As Integer)
+Declare Function grdAddRule (ByVal As Integer, ByRef As Const String) As Integer
+Declare Function grdPrepare As Integer
+Declare Function grdCheck (ByRef As Const String) As Integer
