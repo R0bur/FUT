@@ -36,8 +36,13 @@ CACHE\upd1110a.7z ---> TEMP\UPD1110A.TMP\... ---> TARGET\...
 The FUT program launches the updated application after the updates have been
 successfully processed.
 
+![FUT program main activities](VIEWME.jpg)
+
 FUT program settings are stored in the _fut.ini_ file, the name of the last
 processed update file is stored in the _state.txt_ file.
+
+The distribution package (see [Releases](https://github.com/R0bur/FUT/releases))
+contains a ready-to-use demo environment.
 
 ## COMPILATION
 
