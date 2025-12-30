@@ -31,6 +31,7 @@ Rem ===================================================
 #include once "fut_work.bai"
 #include once "fut_jrnl.bai"
 #include once "fut_grd.bai"
+#include once "fut_http.bai"
 Rem ===================================================
 Rem Копирование строк из структуры StringData в массив.
 Rem Вызов: sd - структура данных StringData.
@@ -58,8 +59,42 @@ Rem пустая строка, если "" = RelativePath.
 Rem ================================================
 Function DetermineAbsolutePath (ByRef BasePath As Const String, ByRef RelativePath As Const String) As String
 	Dim AbsolutePath As String
-	AbsolutePath = Iif ("" <> RelativePath, fileDetermineAbsolutePath (BasePath, RelativePath), "")
+	Rem AbsolutePath = ""
+	If "" <> RelativePath Then
+		If "HTTP://" <> UCase (Left (RelativePath, 7)) Then
+			AbsolutePath = fileDetermineAbsolutePath (BasePath, RelativePath)
+		Else
+			AbsolutePath = RelativePath
+		End If
+	End If
 	DetermineAbsolutePath = AbsolutePath
+End Function
+Rem ====================================================
+Rem Заполнение массива именами файлов по сведениям
+Rem с веб-сервера обновлений.
+Rem Вызов: UserAgent - строка-идентификатор программы FUT,
+Rem        Url - адрес веб-ресурса с файлами обновлений,
+Rem        Mask - маска файлов обновлений.
+Rem Возврат: -1 - массив FileNames заполнен,
+Rem           0 - ошибка заполнения массива.
+Rem ====================================================
+Function FillArrayWithFileNamesFromWebServer (ByRef UserAgent As Const String, ByRef Url As Const String, ByRef Mask As Const String, FileNames () As String) As Integer
+	Dim res As Integer, html As String, host As String, port As UShort, path As String
+	res = -1
+	httpParseUrl Url, host, port, path
+	Rem Подключение к веб-серверу.
+	If -1 <> httpInit (UserAgent, host, port) Then
+		res = 0
+	End If
+	Rem Получение списка файлов и заполнение массива.
+	If -1 = res Then
+		If httpGetText (path, html, 4096) Then
+			httpFillArrayWithFileNames html, Mask, FileNames()
+		Else
+			res = 0
+		End If
+	End If
+	FillArrayWithFileNamesFromWebServer = res
 End Function
 Rem ===================
 Rem Основная программа.
@@ -68,6 +103,7 @@ Const MTHSFWD As Integer = 3		' количество месяцев после "сегодняшней" даты
 Common TodayMMDD As String*4		' "сегодняшняя" дата в виде ММДД
 Common PMMDD As Integer			' позиция даты в виде ММДД в именах файлов
 Dim AppName As String = "File Update Tool"
+Dim UserAgent As String
 Dim UnpackCmd As String
 Dim Station As String
 Dim SavedCurDir As String		' сохранённый текущий каталог
@@ -112,7 +148,7 @@ If 0 = BadResult Then
 	Open IniFileName For Input Access Read As #IniFile
         If 0 = Err Then
         	Rem Подготовка к работе с настройками.
-                stngInit ".Language^.Station^.UpdFileMask^Commands.Unpack^Commands.RunApp^" _
+                stngInit ".Language^.Station^.UpdFileMask^.UserAgent^Commands.Unpack^Commands.RunApp^" _
                 	"Files.State^Files.Journal^Folders.Target^Folders.Source^Folders.Cache^" _
                 	"Folders.Temp^Guard.Default^Debug.TodayMMDD", "^"
         	Rem Построчная обработка файла.
@@ -201,6 +237,11 @@ If 0 = BadResult Then
 		guiDisplayMessage MSGERROR, textSubstitute (langStr (12), ".Station"), AppName
 		BadResult = -1
 	End If
+	Rem Получение идентификатора клиента для работы с HTTP-сервером.
+	UserAgent = stngGetValue (".UserAgent")
+	If "" = UserAgent Then
+		UserAgent = "FUT"
+	End If
 End If
 Rem -----------------------------
 Rem Проверка готовности к работе.
@@ -228,11 +269,12 @@ If 0 = BadResult Then
 		End If
 	End If
         Rem Журнал работы системы.
-        fName = fileDetermineAbsolutePath (SavedCurDir, Trim (stngGetValue ("Files.Journal")))
-        If 0 = fileAccessibleRW (fName) Then
+        fName = DetermineAbsolutePath (SavedCurDir, Trim (stngGetValue ("Files.Journal")))
+	If "HTTP://" <> UCase (Left (fName, 7)) AndAlso 0 = fileAccessibleRW (fName) Then
         	guiDisplayMessage MSGERROR, textSubstitute (langStr(6), fName), AppName
                 BadResult = -1
-        Else
+	End If
+	If 0 = BadResult Then
         	Rem Подготовка к работе с журналом.
         	jrnlOpen (fName)
 		jrnlTitle Station + " (" + TodayMMDD + ")"
@@ -277,11 +319,6 @@ If 0 = BadResult Then
         End If
         Rem Эталонная папка файлов с обновлениями.
         WTD.SourceFolder = DetermineAbsolutePath (SavedCurDir, Trim (stngGetValue ("Folders.Source")))
-        If "" <> WTD.SourceFolder AndAlso 0 = fileFolderAccessibleR (WTD.SourceFolder) Then
-        	Rem Работа будет продолжена без синхронизации с эталонным каталогом.
-        	guiDisplayMessage MSGWARN, textSubstitute (langStr (8), WTD.SourceFolder), AppName
-        	WTD.SourceFolder = ""
-        End If
 End If
 Rem --------------------------------------------------------------
 Rem Синхронизация обновлений в локальной папке с эталонной папкой.
@@ -293,8 +330,27 @@ If 0 = BadResult Then
 		j As Integer, jlb As Integer, jub As Integer, _
 		SourceFile As String, CacheFile As String, c As Integer
 	Rem Составление упорядоченного списка файлов в эталонной папке.
-	Rem Если указано пустое имя эталонной папки, то работа будет вестись только с локальной папкой.
-	fileFillArrayWithFileNames Iif ("" <> WTD.SourceFolder, WTD.SourceFolder, WTD.CacheFolder) + "\" + UpdFileMask, SourceFiles ()
+	If "" <> WTD.SourceFolder Then
+		If "HTTP://" <> UCase (Left (WTD.SourceFolder, 7)) Then
+			If -1 = fileFolderAccessibleR (WTD.SourceFolder) Then
+				fileFillArrayWithFileNames WTD.SourceFolder + "\" + UpdFileMask, SourceFiles()
+			Else
+				fileFillArrayWithFileNames WTD.CacheFolder + "\" + UpdFileMask, SourceFiles ()
+		        	Rem Работа будет продолжена без синхронизации с эталонной папкой.
+		        	guiDisplayMessage MSGWARN, textSubstitute (langStr (8), WTD.SourceFolder), AppName
+			End If
+		Else
+			Rem На этом этапе неявно происходит инициализация подсистемы работы с сетью.
+			If -1 <> FillArrayWithFileNamesFromWebServer (UserAgent, WTD.SourceFolder, UpdFileMask, SourceFiles()) Then
+				Rem Работа будет продолжена без синхронизации с эталонной папкой.
+				guiDisplayMessage MSGWARN, textSubstitute (langStr (27), WTD.SourceFolder), AppName
+				fileFillArrayWithFileNames WTD.CacheFolder + "\" + UpdFileMask, SourceFiles ()
+			End If
+		End If
+	Else
+		Rem Программа настроена на работу без использования эталонной папки.
+		fileFillArrayWithFileNames WTD.CacheFolder + "\" + UpdFileMask, SourceFiles ()
+	End If
 	fileIndexingArray SourceFiles(), SourceFilesOrder(), @fileCompareFileNamesMMDD
 	ilb = LBound (SourceFilesOrder)
 	iub = UBound (SourceFilesOrder)
@@ -395,6 +451,7 @@ Rem которая не допускала одновременного выполнения нескольких
 Rem экземпляров приложения и восстановление текущего каталога.
 Rem ----------------------------------------------------------
 guiExclusiveWorkFinish
+httpDone
 ChDir SavedCurDir
 Rem -----------------------------------------------------------
 Rem Запуск приложения в случае успешного завершения обновления.

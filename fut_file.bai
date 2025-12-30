@@ -4,6 +4,7 @@ Declare Function fileDetermineAbsolutePath (ByRef As Const String, ByRef As Cons
 Declare Function fileTimePointMMDD (ByRef As Const String, ByRef As Const String, ByVal As Integer) As Integer
 Declare Function fileCompareFileNamesMMDD (ByRef As Const String, ByRef As Const String) As Integer
 Declare Sub fileIndexingArray (() As String, () As Integer, As Function (ByRef As Const String, ByRef As Const String) As Integer)
+Declare Function fileNameMatchMask (ByRef As Const String, ByRef As Const String) As Integer
 Declare Function fileValidFileNameMMDD (ByRef As Const String, ByVal As Integer) As Integer
 Declare Sub fileFillArrayWithFileNames (ByRef As Const String, () As String)
 Declare Function fileAccessibleRW (ByRef As Const String) As Integer

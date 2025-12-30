@@ -21,6 +21,7 @@ Rem =================================
 #include once "vbcompat.bi"
 #include once "windows.bi"
 #include once "fut_data.bai"
+#include once "fut_http.bai"
 Dim Shared JournalFileName As String
 Dim Shared JournalRecords As StringData = StringData (2048, Chr (7))
 Dim Shared Timer0 As Double	' отметка времени первой записи в журнале
@@ -86,44 +87,61 @@ Public Function jrnlWrite (ByRef Message As Const String) As Integer
 End Function
 Rem ==========================================================
 Rem Выгрузка записанных сообщений в файл журнала одним блоком.
+Rem Возврат: -1 - журнал выгружен,
+Rem           0 - ошибка выгрузки журнала.
 Rem Поскольку в языке программирования FreeBasic 1.01.0
 Rem не работают блокировки файлов, реализация выполнена
 Rem с использованием средств Win32 API.
 Rem ==========================================================
-Public Sub jrnlClose
+Public Function jrnlClose As Integer
 	Const MAX_ATTEMPT = 20
 	Dim res As Integer, FileHandle As HANDLE, Buf As String, N1 As DWORD, N2 As DWORD
-	Dim i As Integer, n As Integer
-	Rem По умолчанию res = 0, i = 0.
-	Rem Подготовка к работе с файлом.
-	Do
-		i += 1
-		FileHandle = CreateFile (StrPtr (JournalFileName), GENERIC_WRITE, FILE_SHARE_READ, _
-			NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)
-		If INVALID_HANDLE_VALUE = FileHandle Then
-			Sleep 150 + Int (100 * Rnd), 1
+	Dim i As Integer, n As Integer, host As String, port As UShort, path As String
+	If "HTTP://" <> UCase (Left (JournalFileName, 7)) Then
+		Rem Журнал должен быть записан в файл.
+		Rem По умолчанию res = 0, i = 0.
+		Rem Подготовка к работе с файлом.
+		Do
+			i += 1
+			FileHandle = CreateFile (StrPtr (JournalFileName), GENERIC_WRITE, FILE_SHARE_READ, _
+				NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)
+			If INVALID_HANDLE_VALUE = FileHandle Then
+				Sleep 150 + Int (100 * Rnd), 1
+			End If
+		Loop Until INVALID_HANDLE_VALUE <> FileHandle OrElse MAX_ATTEMPT <= i
+		If INVALID_HANDLE_VALUE <> FileHandle Then
+			Rem Установка указателя на конец файла.
+			If INVALID_SET_FILE_POINTER <> SetFilePointer (FileHandle, 0, NULL, FILE_END) Then
+				Rem Перебор записей журнала.
+				n = JournalRecords.Count
+				i = 1
+				res = -1
+				While -1 = res AndAlso i <= n
+					Rem Выгрузка очередной записи журнала в файл.
+					Buf = JournalRecords.Read + Chr(13) + Chr(10)
+					N1 = Len (Buf)
+					If 0 = WriteFile (FileHandle, StrPtr (Buf), N1, @N2, NULL) Then
+						res = 0
+					End If
+					i += 1
+				Wend
+			End If
+			Rem Завершение работы с файлом.
+			CloseHandle FileHandle
 		End If
-	Loop Until INVALID_HANDLE_VALUE <> FileHandle OrElse MAX_ATTEMPT <= i
-	If INVALID_HANDLE_VALUE <> FileHandle Then
-		Rem Установка указателя на конец файла.
-		If INVALID_SET_FILE_POINTER <> SetFilePointer (FileHandle, 0, NULL, FILE_END) Then
-			Rem Перебор записей журнала.
-			n = JournalRecords.Count
-			i = 1
-			res = -1
-			While -1 = res AndAlso i <= n
-				Rem Выгрузка очередной записи журнала в файл.
-				Buf = JournalRecords.Read + Chr(13) + Chr(10)
-				N1 = Len (Buf)
-				If 0 = WriteFile (FileHandle, StrPtr (Buf), N1, @N2, NULL) Then
-					res = 0
-				End If
-				i += 1
-			Wend
-			Rem Очистка журнала.
-			JournalRecords.Wipe
+	Else
+		Rem Журнал должен быть отправлен на веб-сервер.
+		httpParseUrl JournalFileName, host, port, path
+		res = httpSwitchServer (host, port)
+		If -1 = res Then
+			Rem Подготовка текста для отправки.
+			For i = 1 To JournalRecords.Count
+				Buf += JournalRecords.Read + Chr(13) + Chr(10)
+			Next i
+			res = httpPostText (path, "message=" + httpUrlEncode (Buf))
 		End If
-		Rem Завершение работы с файлом.
-		CloseHandle FileHandle
 	End If
-End Sub
+	Rem Очистка журнала.
+	JournalRecords.Wipe
+	jrnlClose = res
+End Function

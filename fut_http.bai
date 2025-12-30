@@ -1,0 +1,9 @@
+Declare Function httpSwitchServer (ByRef As Const String, ByVal As UShort) As Integer
+Declare Function httpInit (ByRef As Const String, ByRef As Const String, ByVal As UShort) As Integer
+Declare Function httpUrlEncode (ByRef As Const String) As String
+Declare Function httpGetText (ByRef As Const String, ByRef As String, ByVal As Integer) As Integer
+Declare Function httpDownloadFile (ByRef As Const String, ByRef As Const String) As Integer
+Declare Function httpPostText (ByRef As Const String, ByRef As Const String) As Integer
+Declare Sub httpDone
+Declare Sub httpParseUrl (ByRef Url As Const String, ByRef Host As String, ByRef Port As UShort, ByRef Path As String)
+Declare Sub httpFillArrayWithFileNames (ByRef As Const String, ByRef As Const String, () As String)

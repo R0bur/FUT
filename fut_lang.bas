@@ -50,7 +50,9 @@ S(..., ...) As Const ZString Ptr => { _
 	@!"Attempt to violate the target folder protection.", _
 	@!"Update files copying error.", _
 	@!"Temporary folder removing error.", _
-	@!"Invalid value is specified for the default protection mode of the target folder: ""Guard.Default"" = ""^0"". It should be ""Allow"" or ""Deny""." _
+	@!"Invalid value is specified for the default protection mode of the target folder: ""Guard.Default"" = ""^0"". It should be ""Allow"" or ""Deny"".", _
+	@!"Can't retrieve list of updates from the network resource:\n\n^0", _
+	@!"An error occurred while saving the update log!" _
 	}, { _
 	@"Русский язык", _
 	@!"Ошибка в параметрах командной строки.\n\nИспользование: ^0 Полное_имя_INI-файла", _
@@ -80,7 +82,9 @@ S(..., ...) As Const ZString Ptr => { _
 	@!"Попытка нарушить защиту целевой папки.", _
 	@!"Ошибка копирования файлов обновления.", _
 	@!"Ошибка удаления временной папки.", _
-	@!"Для режима защиты целевой папки по умолчанию указано неправильное значение: ""Guard.Default"" = ""^0"". Должно быть ""Allow"" или ""Deny""." _
+	@!"Для режима защиты целевой папки по умолчанию указано неправильное значение: ""Guard.Default"" = ""^0"". Должно быть ""Allow"" или ""Deny"".", _
+	@!"Не удалось получить список обновлений с сетевого ресурса:\n\n^0", _
+	@!"При сохранении журнала обновлений произошла ошибка!" _
         } _
 }
 Rem =========================================================

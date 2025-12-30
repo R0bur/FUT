@@ -229,6 +229,62 @@ Public Sub fileIndexingArray (Arr() As String, Ind() As Integer, Cmp As Function
 		Erase Ind
 	End If
 End Sub
+Rem ===============================================
+Rem Проверка имени файла на соответствие маске.
+Rem Вызов: FileName - проверяемое имя файла,
+Rem        FileMask - маска имён файлов.
+Rem Возврат: -1 - имя файла соответствует маске,
+Rem           0 - имя файла маске не соответствует.
+Rem ===============================================
+Public Function fileNameMatchMask (ByRef FileName As Const String, ByRef FileMask As Const String) As Integer
+	Dim Res As Integer, p1 As Integer, p2 As Integer, n1 As Integer, n2 As Integer, _
+		c1 As String*1, c2 As String*1, AsteriskMode As Integer
+	n1 = Len (FileName)
+	n2 = Len (FileMask)
+	Res = -1
+	Rem Пустой маске соответствует любое имя файла.
+	AsteriskMode = n2 = 0
+	Rem Посимвольный перебор и сопоставление.
+	Rem Знак звёздочки соответствует любому количеству символов, в том числе и нулю.
+	Rem Знак вопроса соответствует ровно одному символу, если он стоит не в конце маски.
+	Rem Знаки вопроса, стоящие в конце маски, соответствуют одному или нулю символов.
+	Rem Источник: https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cifs/dc92d939-ec45-40c8-96e5-4c4091e4ab43
+	p1 = 1
+	p2 = 1
+	While -1 = Res AndAlso p1 <= n1 AndAlso p2 <= n2
+		c1 = Mid (FileName, p1, 1)
+		c2 = Mid (FileMask, p2, 1)
+		If c2 = c1 Then
+			AsteriskMode = 0
+			p1 += 1
+			p2 += 1
+		ElseIf c2 = "?" Then
+			p1 += 1
+			p2 += 1
+		ElseIf c2 = "*" Then
+			AsteriskMode = -1
+			p2 += 1
+		ElseIf AsteriskMode Then
+			p1 += 1
+		Else
+			res = 0
+		End If
+		Rem Завершение по достижении конца имени файла или обнаружении несоответствия.
+	Wend
+	Rem Обработка остатка имени файла.
+	If -1 = Res AndAlso p1 <= n1 Then
+		Res = AsteriskMode
+	End If
+	Rem Обработка остатка маски.
+	While -1 = Res AndAlso p2 <= n2
+		c2 = Mid (FileMask, p2, 1)
+		If 0 = InStr ("?*", c2) Then
+			Res = 0
+		End If
+		p2 += 1
+	Wend
+	fileNameMatchMask = Res
+End Function
 Rem =====================================================
 Rem Проверка соответствия имени файла шаблону с ММДД.
 Rem Вызов: FileName - проверяемое имя файла,

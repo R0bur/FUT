@@ -26,6 +26,7 @@ Rem ===================================================
 #include once "fut_jrnl.bai"
 #include once "fut_text.bai"
 #include once "fut_lang.bai"
+#include once "fut_http.bai"
 Dim Shared Description As String
 Dim Shared ErrorDetails As String
 Rem ============================================
@@ -53,6 +54,34 @@ Private Sub workInformJustNow (ByRef s As Const String)
 	guiPrintLn s, -1
 	jrnlWrite s
 End Sub
+Rem =================================================
+Rem Получение файла с обновлением из эталонной папки.
+Rem Вызов: SrcFolder - путь к эталонной папке,
+Rem        TgtFolder - путь к целевой папке,
+Rem        FileName - имя файла с обновлением.
+Rem Возврат: -1 - файл с обновлением получен,
+Rem           0 - ошибка получения файла.
+Rem =================================================
+Private Function RetrieveUpdate (ByRef SrcFolder As Const String, ByRef TgtFolder As String, ByRef FileName As Const String) As Integer
+	Dim res As Integer, FFN1 As String, FFN2 As String, p As Integer
+	FFN2 = TgtFolder + "\" + FileName
+	If "HTTP://" <> UCase (Left (SrcFolder, 7)) Then
+		Rem Эталонная папка находится в файловой системе.
+		FFN1 = SrcFolder + "\" + FileName
+		workInformBefore textSubstitute (langStr (16), FFN1 + "^" + FFN2)
+		res = 0 = FileCopy (FFN1, FFN2)
+		workInformAfter res
+	Else
+		Rem Эталонная папка находится на веб-сервере.
+		FFN1 = SrcFolder + Iif ("/" = Right (SrcFolder, 1), FileName, "/" + FileName)
+		p = InStr (8, FFN1, "/")
+		workInformBefore textSubstitute (langStr (16), FFN1 + "^" + FFN2)
+		Rem Имя исходного файла на сервере: Mid (FFN1, p)
+		res = httpDownloadFile (Mid (FFN1, p), FFN2)
+		workInformAfter res
+	End If
+	RetrieveUpdate = res
+End Function
 Rem ========================================================
 Rem Установка обновления.
 Rem Вызов: FullUpdFileName - полное имя файла с обновлением,
@@ -166,11 +195,7 @@ Public Sub workThread (ByVal UserData As Any Ptr)
 		FileName = PWTD->UpdToInstall(i)
 		Rem Надо ли получать обновление?
 		If j <= ub2 AndAlso FileName = PWTD->UpdToRetrieve(j) Then
-			FFN1 = PWTD->SourceFolder + "\" + FileName
-			FFN2 = PWTD->CacheFolder + "\" + FileName
-			workInformBefore textSubstitute (langStr (16), FFN1 + "^" + FFN2)
-			res = 0 = FileCopy (FFN1, FFN2)
-			workInformAfter res
+			res = RetrieveUpdate (PWTD->SourceFolder, PWTD->CacheFolder, FileName)
 			j += 1
 		End If
 		Rem Установка обновления.
@@ -207,11 +232,7 @@ Public Sub workThread (ByVal UserData As Any Ptr)
 	Rem ---------------------------------------------
 	While -1 = res AndAlso j <= ub2
 		FileName = PWTD->UpdToRetrieve(j)
-		FFN1 = PWTD->SourceFolder + "\" + FileName
-		FFN2 = PWTD->CacheFolder + "\" + FileName
-		workInformBefore textSubstitute (langStr (16), FFN1 + "^" + FFN2)
-		res = 0 = FileCopy (FFN1, FFN2)
-		workInformAfter res
+		res = RetrieveUpdate (PWTD->SourceFolder, PWTD->CacheFolder, FileName)
 		j += 1
 	Wend
 	Rem ----------------------------------------------------
@@ -220,7 +241,11 @@ Public Sub workThread (ByVal UserData As Any Ptr)
 	Rem ----------------------------------------------------
 	guiPrintLn langStr (19) + Iif (-1 = res, langStr (13), langStr (14)), -1
 	jrnlFooter res
-	jrnlClose
+	If 0 = jrnlClose Then
+		Dim emsg As String
+		emsg = "+-+-+ " + langStr (28) + " +-+-+"
+		guiPrintLn emsg, -1
+	End If
 	Rem ----------------------------------------
 	Rem Сообщение о результате выполнения задач.
 	Rem ----------------------------------------
