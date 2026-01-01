@@ -1,9 +1,6 @@
 # File Update Tool
 
-File Update Tool (FUT program) is an utility for automating the distribution
-of files - components of interactive applications - to workstations. It was
-developed using FreeBASIC-1.01.0-win32 compiler and is designed for use in
-the Microsoft Windows operating system.
+The File Update Tool (FUT) program is designed to automate the updating of interactive software for workstations.
 
 The author of the FUT program is Ihar S. Areshchankau, robursw@gmail.com
 
@@ -18,11 +15,20 @@ FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 ## DESCRIPTION
 
-The FUT program retrieves archived update files from the server's _SOURCE_
-folder into the workstation's _CACHE_ folder. It selects those that need to be
-processed at the moment based on the current date and the last processed
-update file name. The program processes each selected update: unpacking
-the archive contents to the _TEMP_ folder and copying them to the _TARGET_ folder.
+When installed on a computer, the FUT program performs the following actions upon startup (see the update diagram):
+- Downloads date-stamped archives with files to be installed now or in the future from the update server (SMB/CIFS or HTTP).
+- Extracts files from archives that correspond to the current calendar date and writes the files into the target directory.
+- Records the update log in a log file or sends it to an HTTP server.
+- Launches the application specified in the settings upon successful completion of the update procedure.
+
+Features of the FUT program:
+- Works in operating systems from Windows NT 4.0 to Windows 10.
+- Doesn't depend on third-party software components.
+- Installs both current and missed updates in chronological order.
+- Protects critical files of the target system from modification during the update installation.
+- Allows the task of delivering update archives to be assigned to other subsystems.
+
+Update diagram.
 
 ```
 SOURCE\upd1110a.7z
@@ -33,15 +39,9 @@ SOURCE\upd1110a.7z
 CACHE\upd1110a.7z ---> TEMP\UPD1110A.TMP\... ---> TARGET\...
 ```
 
-The FUT program launches the updated application after the updates have been
-successfully processed.
-
 ![FUT program main activities](VIEWME.jpg)
 
-FUT program settings are stored in the _fut.ini_ file, the name of the last
-processed update file is stored in the _state.txt_ file.
-
-The distribution package (see [Releases](https://github.com/R0bur/FUT/releases))
+FUT program settings are stored in the _fut.ini_ file, and the name of the last processed update is recorded in the _state.txt_ file. The distribution package (see [Releases](https://github.com/R0bur/FUT/releases))
 contains a ready-to-use demo environment.
 
 ## COMPILATION
