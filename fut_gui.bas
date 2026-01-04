@@ -25,8 +25,8 @@ Common Shared hInstance As HINSTANCE
 Const WM_WORKDONE As DWORD = WM_USER
 Const TM_WORKDONE As DWORD = 0 + WM_APP
 Const TM_PRINTLN As DWORD = 1 + WM_APP
-Const IDC_EDBINFO As DWORD = 1
-Const IDC_BTNNEXT As DWORD = 2
+Const IDC_EDBINFO As UInteger = 1
+Const IDC_BTNNEXT As UInteger = 2
 Dim Shared hMainWindow As HWND = NULL
 Dim Shared IdGuiThread As DWORD = 0
 Dim Shared WorkDone As Integer = 0

@@ -48,7 +48,7 @@ Private Function httpConnect As Integer
 			SockAddr.sin_port = htons (SrvPort)
 			SockAddr.sin_family = AF_INET
 			SockAddr.sin_addr.S_addr = SrvAddr
-			If SOCKET_ERROR <> connect (Socket, CPtr (PSOCKADDR, @SockAddr), sizeof (SockAddr)) Then
+			If SOCKET_ERROR <> connect (Socket, CPtr (PSOCKADDR, @SockAddr), sizeof ((SockAddr))) Then
 				res = -1
 			Else
 				closesocket (Socket)

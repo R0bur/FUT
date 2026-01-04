@@ -46,8 +46,8 @@ contains a ready-to-use demo environment.
 
 ## COMPILATION
 
-1. Install FreeBASIC-1.01.0-win32 compiler to the folder
-   _C:\EXE\FreeBASIC-1.01.0-win32_
+1. Install FreeBASIC-1.10.1-win32 compiler to the folder
+   _C:\FreeBASIC-1.10.1-win32_
 
 2. Create a new folder and copy FUT program source files into it.
 
